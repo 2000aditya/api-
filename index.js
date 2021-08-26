@@ -3,7 +3,9 @@ const app = express();
 const cors = require("cors");
 const pool = require("./db");
 const datalize = require('datalize');
-const Sequelize = require('sequelize')
+const Sequelize = require('sequelize');
+const { Pool } = require("pg");
+const { response } = require("express");
 const sequelize = new Sequelize('postgres://user:estkqtdq:5432/estkqtdq')
 //middleware
 app.use(cors());
@@ -51,46 +53,51 @@ const field = datalize.field;
 //post reqs
 
 app.post("/first",async(req,res)=>{
-try {
-    
     const{firstname,lastname,contactno,email} = req.body;
+
+    try {
     
-    let regexEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-  if (email.match(regexEmail)) {
-    return true; 
-} else {
-   // res.json("ener valid email");
-   // process.exitCode; 
-
-    return false; 
-
-    //res.json("ener valid email");
-    //process.exitCode; 
-
-  };
     
-    if(!firstname || !lastname ||  !contactno || !email){
-        res.json({message:"please enter all fields"});
-        process.exitCode;
+        let regexEmail = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+      if (email.match(regexEmail)) {
+       
+       
+        if(!firstname || !lastname ||  !contactno || !email){
+            res.json({message:"please enter all fields"});
+            process.exitCode;
     
-    }
-      else{
-
-        console.log(req.body)
-
-
-         const newemployeedetails4 =  await pool.query( "INSERT INTO  employeedetails4(firstname,lastname,contactno,email) values($1,$2,$3,$4) RETURNING*",[firstname,lastname,contactno,email]);
-         console.log(newemployeedetails4.rows[0] );
-    
-
-        res.json(`User  ${firstname} added`)
         }
-    } catch (error) {
-        console.error(err)
-    }
+          else{
     
-    });
+            console.log(req.body)
+    
+    
+             const newemployeedetails4 =  await pool.query( "INSERT INTO  employeedetails4(firstname,lastname,contactno,email) values($1,$2,$3,$4) RETURNING*",[firstname,lastname,contactno,email]);
+             console.log(newemployeedetails4.rows[0] );
+    
+    
+            res.json(`User  ${firstname} added`)
+            }
 
+       
+        return true; 
+    }
+    else {
+        res.json(console.error(404));
+        process.exitCode;
+        console.log("invalid email")
+       
+    }
+        
+            
+        
+        
+}catch (error) {
+   console.error(err)
+        }
+    
+        });
+    
 //get req
 
 
@@ -101,7 +108,7 @@ app.get("/first",async(req,res)=>{
         res.json(fullemployeedetails4.rows);
 
     } catch (err) {
-        console.error("error message")
+        console.error(404)("error message")
     }
 })
  
@@ -117,7 +124,7 @@ app.get("/first/:id",async(req,res)=>{
         res.json (employeedetails4.rows[0]);
         
     } catch (err) {
-        console.error("error message")
+        console.error(404)("error message")
     }
 
 
@@ -139,6 +146,7 @@ app.put("/first/:id",async(req,res)=>{
     if(!firstname || !lastname || !contactno || !email){
         res.json({message:"please enter all fields"});
         process.exitCode;
+        
     }
 
 
@@ -152,7 +160,7 @@ else{
    }
     
 } catch (error) {
-    console.error("error message")
+    console.error(404)("error message")
       
 }
    
@@ -162,7 +170,16 @@ else{
 
 
 
-// must require
+// delete
+app.delete("/first/:id",async(req,res) =>{
+    try {
+        const { id } = req.params;
+        const deleteemployeedetails4 = await pool.query("DELETE from employeedetails4 WHERE contact_id =$1",[id]);
+        res.json(`User deleted with contact_id: ${id}`);
+    } catch (err) {
+        console.error(404)(err.message);
+    }
+})
 
 
 
